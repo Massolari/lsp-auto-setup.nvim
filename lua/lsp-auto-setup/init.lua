@@ -27,7 +27,7 @@ local function should_skip_server(name, exclude, deprecated)
 end
 
 ---Finds the path to nvim-lspconfig in the runtime path
----@return string|nil lspconfig_path Path to the nvim-lspconfig installation or nil if not found
+---@return string|nil lspconfig_path Path to the nvim-lspconfig installation or `nil` if not found
 local function get_lspconfig_path()
   local runtime_paths = vim.opt.rtp:get()
   local lspconfig_path = vim.tbl_filter(function(path)
@@ -38,7 +38,7 @@ local function get_lspconfig_path()
 end
 
 ---Sets up an individual LSP server if its executable is available
----@param name string The name of the LSP server (without .lua extension)
+---@param name string The name of the LSP server
 ---@param server_config function Function to generate server configuration
 local function setup_server(name, server_config)
   local lspconfig = require("lspconfig")
@@ -61,7 +61,7 @@ local function setup_server(name, server_config)
 end
 
 ---Sets up LSP servers automatically based on available executables
----@param opts ConfigOptions|nil Configuration options (see default_opts)
+---@param opts ConfigOptions|nil Configuration options
 function M.setup(opts)
   local options = vim.tbl_extend("keep", opts or {}, default_opts)
 
