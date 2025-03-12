@@ -49,7 +49,6 @@ With no options provided, the plugin will:
 ### Configuration Options
 
 ```lua
-```lua
 require("lsp-auto-setup").setup({
   -- Table of server-specific configuration functions
   server_config = {
