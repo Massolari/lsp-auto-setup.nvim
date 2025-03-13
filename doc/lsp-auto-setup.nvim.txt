@@ -1,4 +1,4 @@
-*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 12
+*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 13
 
 ==============================================================================
 Table of Contents                      *lsp-auto-setup.nvim-table-of-contents*
@@ -18,8 +18,7 @@ A Neovim plugin that automatically sets up language servers based on available
 executables.
 
 With this plugin you don’t need to manually configure each language server in
-your `init.vim` or `init.lua`. It will automatically detect and set up servers
-based on the executables available on your system.
+your `init.lua`. It will automatically detect and set up servers.
 
 
 FEATURES                         *lsp-auto-setup.nvim-lsp-auto-setup-features*
