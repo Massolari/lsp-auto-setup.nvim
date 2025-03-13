@@ -2,7 +2,35 @@
 
 A Neovim plugin that automatically sets up language servers based on available executables.
 
-With this plugin you don't need to manually configure each language server in your `init.lua`. It will automatically detect and set up servers.
+## Problem
+
+Every time you want to use a new language server, you need to install it **and** configure it in your `init.lua`:
+
+```lua
+require("lspconfig").<server>.setup({
+  -- Configuration here
+})
+```
+
+This can get tedious, especially if you're working with multiple servers:
+
+```lua
+require"lspconfig".tsserver.setup{}
+require"lspconfig".html.setup{}
+require"lspconfig".cssls.setup{}
+require"lspconfig".jsonls.setup{}
+require"lspconfig".pyright.setup{}
+require"lspconfig".rust_analyzer.setup{}
+-- And so on...
+```
+
+## Solution
+
+This plugin automatically detects and configures language servers based on available executables. It uses the `nvim-lspconfig` plugin to set up servers, so you don't need to worry about writing configuration for each server.
+
+```lua
+require"lsp-auto-setup".setup{} -- Already set up all available servers
+```
 
 ## Features
 
@@ -23,30 +51,16 @@ With this plugin you don't need to manually configure each language server in yo
 {
   "Massolari/lsp-auto-setup.nvim",
   dependencies = { "neovim/nvim-lspconfig" },
-  config = true
+  config = true,
+  opts = {
+    -- Those are the default options, you don't need to provide them if you're happy with the defaults
+    server_config = {},
+    exclude = {}
+  }
 }
 ```
 
-## Usage
-
-The plugin provides a simple setup function that can be customized with options:
-
-```lua
-require("lsp-auto-setup").setup({
-  -- Options here
-})
-```
-
-### Default Configuration
-
-With no options provided, the plugin will:
-
-1. Scan all available language server configurations from `nvim-lspconfig`
-2. Check if each server's executable is available on your system
-3. Automatically set up servers that are found
-4. Skip deprecated servers
-
-### Configuration Options
+#### Example configuration
 
 ```lua
 require("lsp-auto-setup").setup({
@@ -81,7 +95,7 @@ The plugin:
 1. Locates the `nvim-lspconfig` installation in your runtime path
 2. Scans all available language server configurations
 3. For each server, it checks if its executable is available on your system
-4. If found, it sets up the server with your custom configuration or the default configuration
+4. If found, it sets up the server with your custom configuration or the default configuration skipping deprecated servers
 
 ## Global configuration
 
