@@ -1,5 +1,6 @@
 ---@module "lsp-auto-setup"
 ---@description Automatically sets up LSP servers based on available executables
+
 local M = {}
 
 --- List of deprecated LSP servers that should not be set up
@@ -9,9 +10,14 @@ local deprecated_server = {
   "bufls"
 }
 
+local function notify(message, level)
+  vim.notify(message, level, { title = "LSP Auto Setup" })
+end
+
 ---@class ConfigOptions
 ---@field server_config table<string, fun(default_config: table): table> Table of server configurations, where the key is the server name and the value is a function that gets the default configuration and returns the custom configuration
 ---@field exclude table List of server names to exclude from auto-setup
+
 local default_opts = {
   server_config = {},
   exclude = {}
@@ -44,12 +50,25 @@ local function setup_server(name, server_config)
   local lspconfig = require("lspconfig")
   local server = lspconfig[name]
   local default_config = (server.default_config or server.document_config.default_config)
-  local options = server_config[name] and server_config[name](default_config) or {}
   local cmd_type = type(default_config.cmd)
 
+  local user_options = server_config[name]
+  local options = {}
+  if (user_options) then
+    if (type(user_options) ~= "function") then
+      notify("Error while setting up " .. name .. ": `server_config` must be a function that returns a table",
+        vim.log.levels.ERROR)
+      return
+    end
+    options = user_options(default_config)
+  end
+
   local cmd = nil
-  if (cmd_type == "table") then
-    cmd = ((options.cmd or default_config.cmd)[1] or nil)
+  -- If the user has provided a custom command, use that
+  if options.cmd then
+    cmd = options.cmd[1]
+  elseif (cmd_type == "table") then
+    cmd = default_config.cmd[1]
   elseif (cmd_type == "string") then
     cmd = default_config.cmd
   end
@@ -68,7 +87,7 @@ function M.setup(opts)
   local lspconfig_path = get_lspconfig_path()
 
   if (lspconfig_path == nil) then
-    vim.notify("nvim-lspconfig not found in runtimepath", vim.log.levels.ERROR)
+    notify("nvim-lspconfig not found in runtimepath", vim.log.levels.ERROR)
     return
   end
 

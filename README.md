@@ -2,7 +2,7 @@
 
 A Neovim plugin that automatically sets up language servers based on available executables.
 
-With this plugin you don't need to manually configure each language server in your `init.vim` or `init.lua`. It will automatically detect and set up servers based on the executables available on your system.
+With this plugin you don't need to manually configure each language server in your `init.lua`. It will automatically detect and set up servers.
 
 ## Features
 
