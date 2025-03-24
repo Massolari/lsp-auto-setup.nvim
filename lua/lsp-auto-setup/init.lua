@@ -1,10 +1,10 @@
----@module "lsp-auto-setup"
----@description Automatically sets up LSP servers based on available executables
+--- Automatically sets up LSP servers based on available executables
 
+local cache = require("lsp-auto-setup.cache")
 local M = {}
 
 --- List of deprecated LSP servers that should not be set up
-local deprecated_server = {
+local DEPRECATED_SERVER = {
   "typst_lsp",
   "ruff_lsp",
   "bufls"
@@ -14,13 +14,32 @@ local function notify(message, level)
   vim.notify(message, level, { title = "LSP Auto Setup" })
 end
 
----@class ConfigOptions
----@field server_config table<string, fun(default_config: table): table> Table of server configurations, where the key is the server name and the value is a function that gets the default configuration and returns the custom configuration
----@field exclude table List of server names to exclude from auto-setup
+---@alias ServerConfig table<string, fun(default_config: table): table>
 
-local default_opts = {
+---@class ConfigOptions
+---@field server_config? ServerConfig Table of server configurations, where the key is the server name and the value is a function that gets the default configuration and returns the custom configuration
+---@field exclude? table List of server names to exclude from auto-setup
+---@field cache? CacheOptions Whether to cache the servers or not
+
+---@class CacheOptions
+---@field enable? boolean Whether to cache the servers or not
+---@field ttl? number Time-to-live for the cache in seconds
+---@field path? string Path to the cache directory
+
+---@class Config
+---@field server_config ServerConfig
+---@field exclude table
+---@field cache CacheConfig
+
+---@type Config
+local DEFAULT_OPTS = {
   server_config = {},
-  exclude = {}
+  exclude = {},
+  cache = {
+    enable = true,
+    ttl = 60 * 60 * 24 * 7,
+    path = vim.fn.stdpath("cache") .. "/lsp-auto-setup"
+  }
 }
 
 ---Checks if a server should be skipped
@@ -45,8 +64,13 @@ end
 
 ---Sets up an individual LSP server if its executable is available
 ---@param name string The name of the LSP server
----@param server_config function Function to generate server configuration
-local function setup_server(name, server_config)
+---@param server_config table<string, function> Function to generate server configuration
+---@param exclude table List of server names to exclude from auto-setup
+local function setup_server(name, server_config, exclude)
+  if (should_skip_server(name, exclude, DEPRECATED_SERVER)) then
+    return
+  end
+
   local lspconfig = require("lspconfig")
   local server = lspconfig[name]
   local default_config = (server.default_config or server.document_config.default_config)
@@ -82,7 +106,15 @@ end
 ---Sets up LSP servers automatically based on available executables
 ---@param opts ConfigOptions|nil Configuration options
 function M.setup(opts)
-  local options = vim.tbl_extend("keep", opts or {}, default_opts)
+  ---@type CacheOptions
+  local user_cache_options = (opts and opts.cache) or {}
+
+  ---@type CacheConfig
+  local cache_options = vim.tbl_extend("keep", user_cache_options, DEFAULT_OPTS.cache)
+
+  ---@type Config
+  local options = vim.tbl_extend("keep", opts or {}, DEFAULT_OPTS)
+  options.cache = cache_options
 
   local lspconfig_path = get_lspconfig_path()
 
@@ -91,6 +123,15 @@ function M.setup(opts)
     return
   end
 
+  local cached = cache.read_servers(options.cache)
+  if (cached) then
+    for _, server in pairs(cached.servers) do
+      setup_server(server, options.server_config, options.exclude)
+    end
+    return
+  end
+
+  local servers_to_cache = {}
   -- Iterate through all available LSP server configurations
   for name, type_ in vim.fs.dir((lspconfig_path .. "/lua/lspconfig/configs")) do
     if (type_ ~= "file") then
@@ -98,14 +139,13 @@ function M.setup(opts)
     end
 
     local name_without_extension = vim.fn.fnamemodify(name, ":r")
-    if (should_skip_server(name_without_extension, options.exclude, deprecated_server)) then
-      goto continue
-    end
-
-    setup_server(name_without_extension, options.server_config)
+    table.insert(servers_to_cache, name_without_extension)
+    setup_server(name_without_extension, options.server_config, options.exclude)
 
     ::continue::
   end
+
+  cache.write_servers(servers_to_cache, options.cache)
 end
 
 return M

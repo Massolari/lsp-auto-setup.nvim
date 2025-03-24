@@ -37,6 +37,7 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
 - Automatically detects and configures LSP servers based on available executables
 - Allows custom configuration for each server
 - Provides options to exclude specific servers
+- Cache server names to avoid re-scanning on subsequent calls
 
 ## Requirements
 
@@ -52,10 +53,20 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
   "Massolari/lsp-auto-setup.nvim",
   dependencies = { "neovim/nvim-lspconfig" },
   config = true,
+  -- Those are the default options, you don't need to provide them if you're happy with the defaults
   opts = {
-    -- Those are the default options, you don't need to provide them if you're happy with the defaults
+    -- Table of server-specific configuration functions
     server_config = {},
-    exclude = {}
+
+    -- List of server names to exclude from auto-setup
+    exclude = {},
+
+    -- Cache configuration
+    cache = {
+      enable = true, -- Enable/disable caching of server names
+      ttl = 60 * 60 * 24 * 7, -- Time-to-live for cached server names (in seconds), default is 1 week
+      path = vim.fn.stdpath("cache") .. "/lsp-auto-setup/servers.json" -- Path to the cache file
+    }
   }
 }
 ```
@@ -64,9 +75,7 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
 
 ```lua
 require("lsp-auto-setup").setup({
-  -- Table of server-specific configuration functions
   server_config = {
-    -- Example: Add custom settings for specific servers
     lua_ls = function(default_config)
       return {
         settings = {
@@ -83,19 +92,29 @@ require("lsp-auto-setup").setup({
     --   return { ... }
     -- end
   },
-  
-  -- List of server names to exclude from auto-setup
-  exclude = { "tsserver", "rust_analyzer" }
+  exclude = { "tsserver", "rust_analyzer" },
+  cache = {
+    ttl = 60 * 60 * 24 * 2, -- 2 days
+    path = vim.fn.expand("~") .. "/cache-files" -- Custom cache path
+  }
 })
 ```
+
+### Commands
+
+The following commands are available:
+
+- `LspAutoSetupClearCache`: Clear the cache file used to store server names. This will force the plugin to re-scan the available servers on the next call.
 
 ## How It Works
 
 The plugin:
 1. Locates the `nvim-lspconfig` installation in your runtime path
-2. Scans all available language server configurations
+2. Scans all available language server configurations*
 3. For each server, it checks if its executable is available on your system
 4. If found, it sets up the server with your custom configuration or the default configuration skipping deprecated servers
+
+_*This is done only once, and the results are cached to avoid re-scanning on subsequent calls. The cache is cleared after a week by default._
 
 ## Global configuration
 
