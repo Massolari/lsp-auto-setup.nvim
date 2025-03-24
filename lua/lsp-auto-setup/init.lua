@@ -20,6 +20,7 @@ end
 ---@field server_config? ServerConfig Table of server configurations, where the key is the server name and the value is a function that gets the default configuration and returns the custom configuration
 ---@field exclude? table List of server names to exclude from auto-setup
 ---@field cache? CacheOptions Whether to cache the servers or not
+---@field stop_unused_servers? boolean Whether to automatically stop a server when there is no buffer attached to it
 
 ---@class CacheOptions
 ---@field enable? boolean Whether to cache the servers or not
@@ -30,6 +31,7 @@ end
 ---@field server_config ServerConfig
 ---@field exclude table
 ---@field cache CacheConfig
+---@field stop_unused_servers boolean
 
 ---@type Config
 local DEFAULT_OPTS = {
@@ -39,16 +41,48 @@ local DEFAULT_OPTS = {
     enable = true,
     ttl = 60 * 60 * 24 * 7,
     path = vim.fn.stdpath("cache") .. "/lsp-auto-setup"
-  }
+  },
+  stop_unused_servers = true
 }
 
----Checks if a server should be skipped
----@param name string The name of the LSP server
----@param exclude table List of server names to exclude from auto-setup
----@param deprecated table List of deprecated LSP servers
----@return boolean should_skip True if the server should be skipped, false otherwise
-local function should_skip_server(name, exclude, deprecated)
-  return (vim.tbl_contains(exclude, name) or vim.tbl_contains(deprecated, name))
+--- Gets the configuration options
+--- @param opts ConfigOptions
+--- @return Config
+local function get_config(opts)
+  ---@type CacheOptions
+  local user_cache_options = opts.cache or {}
+
+  ---@type CacheConfig
+  local cache_options = vim.tbl_extend("keep", user_cache_options, DEFAULT_OPTS.cache)
+
+  ---@type Config
+  local options = vim.tbl_extend("keep", opts, DEFAULT_OPTS)
+  options.cache = cache_options
+
+  return options
+end
+
+local function create_stop_unused_servers_autocmd()
+  vim.api.nvim_create_autocmd({ "LspDetach" }, {
+    group = vim.api.nvim_create_augroup("lsp-auto-setup-stop-unused-servers", { clear = true }),
+    callback = vim.schedule_wrap(function(args)
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
+      if not client or not client.attached_buffers then
+        return
+      end
+
+      -- Check if there are any other buffers attached to the client
+      for buf_id in pairs(client.attached_buffers) do
+        if buf_id ~= args.buf then
+          return
+        end
+      end
+
+      -- Stop the client if no other buffers are attached
+      client.stop()
+    end),
+    desc = "LspAutoSetup: Stop server when no buffer is attached",
+  })
 end
 
 ---Finds the path to nvim-lspconfig in the runtime path
@@ -61,6 +95,16 @@ local function get_lspconfig_path()
 
   return lspconfig_path
 end
+
+---Checks if a server should be skipped
+---@param name string The name of the LSP server
+---@param exclude table List of server names to exclude from auto-setup
+---@param deprecated table List of deprecated LSP servers
+---@return boolean should_skip True if the server should be skipped, false otherwise
+local function should_skip_server(name, exclude, deprecated)
+  return (vim.tbl_contains(exclude, name) or vim.tbl_contains(deprecated, name))
+end
+
 
 ---Sets up an individual LSP server if its executable is available
 ---@param name string The name of the LSP server
@@ -106,15 +150,11 @@ end
 ---Sets up LSP servers automatically based on available executables
 ---@param opts ConfigOptions|nil Configuration options
 function M.setup(opts)
-  ---@type CacheOptions
-  local user_cache_options = (opts and opts.cache) or {}
+  local options = get_config(opts or {})
 
-  ---@type CacheConfig
-  local cache_options = vim.tbl_extend("keep", user_cache_options, DEFAULT_OPTS.cache)
-
-  ---@type Config
-  local options = vim.tbl_extend("keep", opts or {}, DEFAULT_OPTS)
-  options.cache = cache_options
+  if options.stop_unused_servers then
+    create_stop_unused_servers_autocmd()
+  end
 
   local lspconfig_path = get_lspconfig_path()
 
