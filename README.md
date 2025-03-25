@@ -70,7 +70,10 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
     },
 
     -- Stop servers that are not attached to any buffer. When a buffer is closed, the server attached to it will be stopped if it's not attached to any other buffer
-    stop_unused_servers = true
+    stop_unused_servers = {
+      enable = true, -- Enable/disable stopping of unused servers
+      exclude = {} -- List of server names to exclude from stopping
+    }
   }
 }
 ```
@@ -100,6 +103,9 @@ require("lsp-auto-setup").setup({
   cache = {
     ttl = 60 * 60 * 24 * 2, -- 2 days
     path = vim.fn.expand("~") .. "/cache-files" -- Custom cache path
+  },
+  stop_unused_servers = {
+    exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
   }
 })
 ```
