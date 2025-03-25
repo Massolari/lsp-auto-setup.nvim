@@ -1,4 +1,4 @@
-*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 24
+*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 25
 
 ==============================================================================
 Table of Contents                      *lsp-auto-setup.nvim-table-of-contents*
@@ -95,7 +95,10 @@ USING LAZY.NVIM ~
         },
     
         -- Stop servers that are not attached to any buffer. When a buffer is closed, the server attached to it will be stopped if it's not attached to any other buffer
-        stop_unused_servers = true
+        stop_unused_servers = {
+          enable = true, -- Enable/disable stopping of unused servers
+          exclude = {} -- List of server names to exclude from stopping
+        }
       }
     }
 <
@@ -126,6 +129,9 @@ EXAMPLE CONFIGURATION
       cache = {
         ttl = 60 * 60 * 24 * 2, -- 2 days
         path = vim.fn.expand("~") .. "/cache-files" -- Custom cache path
+      },
+      stop_unused_servers = {
+        exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
       }
     })
 <
