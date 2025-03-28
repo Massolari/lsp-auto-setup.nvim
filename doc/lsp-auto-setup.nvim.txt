@@ -165,11 +165,19 @@ This configuration will be merged with the default configuration from
 _Note: The filename must match the server name (e.g., lua_ls.lua for the lua_ls
 server)._
 
-The `lsp-auto-setup`’s `setup` wouldn’t have the `server_config` option in
-this case, but you can still use the other options:
+The `lsp-auto-setup`’s `setup` is still useful for configurations that use
+the default configuration coming from `nvim-lspconfig`:
 
 >lua
     require("lsp-auto-setup").setup({
+      server_config = {
+        tailwindcss = function(default_config)
+          return {
+            init_options = { userLanguages = { elm = "html", gleam = "html" } },
+            filetypes = { "elm", "gleam", unpack(default_config.filetypes) },
+          }
+        end
+      },
       exclude = { "tsserver", "rust_analyzer" },
       stop_unused_servers = {
         exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
