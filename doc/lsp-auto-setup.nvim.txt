@@ -1,4 +1,4 @@
-*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 25
+*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0      Last change: 2025 March 28
 
 ==============================================================================
 Table of Contents                      *lsp-auto-setup.nvim-table-of-contents*
@@ -61,6 +61,7 @@ FEATURES                         *lsp-auto-setup.nvim-lsp-auto-setup-features*
 - Provides options to exclude specific servers
 - Cache server names to avoid re-scanning on subsequent calls
 - Automatically stop servers that are not attached to any buffer
+- Works with `lsp/[server].lua` files. The configuration will be merged with the default configuration from `nvim-lspconfig`
 
 
 REQUIREMENTS                 *lsp-auto-setup.nvim-lsp-auto-setup-requirements*
@@ -104,7 +105,10 @@ USING LAZY.NVIM ~
 <
 
 
-EXAMPLE CONFIGURATION
+EXAMPLE CONFIGURATION ~
+
+
+CONFIGURING THE SERVER ON SETUP
 
 >lua
     require("lsp-auto-setup").setup({
@@ -130,6 +134,43 @@ EXAMPLE CONFIGURATION
         ttl = 60 * 60 * 24 * 2, -- 2 days
         path = vim.fn.expand("~") .. "/cache-files" -- Custom cache path
       },
+      stop_unused_servers = {
+        exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
+      }
+    })
+<
+
+
+CONFIGURING THE SERVER IN LSP/[SERVER].LUA
+
+If you’re using Neovim 0.11, you can set the server configuration in the
+`lsp/[server].lua` file:
+
+>lua
+    -- ~/.config/nvim/lua/lsp/lua_ls.lua
+    return {
+      settings = {
+        Lua = {
+          diagnostics = {
+            globals = { "vim" }
+          }
+        }
+      }
+    }
+<
+
+This configuration will be merged with the default configuration from
+`nvim-lspconfig`.
+
+_Note: The filename must match the server name (e.g., lua_ls.lua for the lua_ls
+server)._
+
+The `lsp-auto-setup`’s `setup` wouldn’t have the `server_config` option in
+this case, but you can still use the other options:
+
+>lua
+    require("lsp-auto-setup").setup({
+      exclude = { "tsserver", "rust_analyzer" },
       stop_unused_servers = {
         exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
       }
