@@ -39,6 +39,7 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
 - Provides options to exclude specific servers
 - Cache server names to avoid re-scanning on subsequent calls
 - Automatically stop servers that are not attached to any buffer
+- Works with `lsp/[server].lua` files. The configuration will be merged with the default configuration from `nvim-lspconfig`
 
 ## Requirements
 
@@ -78,7 +79,9 @@ require"lsp-auto-setup".setup{} -- Already set up all available servers
 }
 ```
 
-#### Example configuration
+### Example configuration
+
+#### Configuring the server on `setup`
 
 ```lua
 require("lsp-auto-setup").setup({
@@ -104,6 +107,38 @@ require("lsp-auto-setup").setup({
     ttl = 60 * 60 * 24 * 2, -- 2 days
     path = vim.fn.expand("~") .. "/cache-files" -- Custom cache path
   },
+  stop_unused_servers = {
+    exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
+  }
+})
+```
+
+#### Configuring the server in `lsp/[server].lua`
+
+If you're using Neovim 0.11, you can set the server configuration in the `lsp/[server].lua` file:
+
+```lua
+-- ~/.config/nvim/lua/lsp/lua_ls.lua
+return {
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = { "vim" }
+      }
+    }
+  }
+}
+```
+
+This configuration will be merged with the default configuration from `nvim-lspconfig`.
+
+_Note: The filename must match the server name (e.g., `lua_ls.lua` for the `lua_ls` server)._
+
+The `lsp-auto-setup`'s `setup` wouldn't have the `server_config` option in this case, but you can still use the other options:
+
+```lua
+require("lsp-auto-setup").setup({
+  exclude = { "tsserver", "rust_analyzer" },
   stop_unused_servers = {
     exclude = {"lua_ls"} -- Don't stop the lua_ls server when it's not attached to any buffer
   }
