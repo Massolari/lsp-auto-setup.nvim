@@ -142,7 +142,7 @@ local function setup_server(name, server_config, exclude)
 	local cmd_type = type(default_config.cmd)
 
 	local user_options = server_config[name]
-	local options = {}
+	local options = vim.lsp.config[name] or {}
 	if user_options then
 		if type(user_options) ~= "function" then
 			notify(
