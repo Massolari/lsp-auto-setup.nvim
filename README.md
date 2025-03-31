@@ -171,7 +171,10 @@ _*This is done only once, and the results are cached to avoid re-scanning on sub
 
 ## Global configuration
 
-If you want to set global configuration for all servers (like `capabilities` or `on_attach`), `nvim-lspconfig` already provides a way to do that:
+
+If you want to set global configuration for all servers (like `capabilities` or `on_attach`), nvim-lspconfig and `vim.lsp.config` already provides a way to do that:
+
+### nvim-lspconfig
 
 ```lua
  local lspconfig = require'lspconfig'
@@ -197,3 +200,16 @@ If you want to set global configuration for all servers (like `capabilities` or 
 ```
 
 This is documented on [`:help lspconfig-global-defaults`](https://github.com/neovim/nvim-lspconfig/blob/8a1529e46eef5efc86c34c8d9bdd313abc2ecba0/doc/lspconfig.txt#L124)
+
+### vim.lsp.config
+
+```lua
+vim.lsp.config("*", {
+    capabilities = vim.lsp.protocol.make_client_capabilities(),
+    on_attach = function(client, bufnr)
+        -- Your custom on_attach function
+    end,
+})
+```
+
+This is documented on [`:help vim.lsp.config()`](https://neovim.io/doc/user/lsp.html#vim.lsp.config())
