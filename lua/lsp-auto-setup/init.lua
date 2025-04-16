@@ -138,11 +138,11 @@ local function setup_server(name, server_config, exclude)
 
 	local lspconfig = require("lspconfig")
 	local server = lspconfig[name]
-	local default_config = (server.default_config or server.document_config.default_config)
-	local cmd_type = type(default_config.cmd)
+	local lsp_config = vim.lsp.config[name] or {}
+	local config = vim.tbl_extend("force", server.default_config or server.document_config.default_config, lsp_config)
+	local cmd_type = type(config.cmd)
 
 	local user_options = server_config[name]
-	local options = vim.lsp.config[name] or {}
 	if user_options then
 		if type(user_options) ~= "function" then
 			notify(
@@ -151,22 +151,20 @@ local function setup_server(name, server_config, exclude)
 			)
 			return
 		end
-		options = user_options(default_config)
+		config = vim.tbl_extend("force", config, user_options(config))
 	end
 
 	local cmd = nil
 	-- If the user has provided a custom command, use that
-	if options.cmd then
-		cmd = options.cmd[1]
-	elseif cmd_type == "table" then
-		cmd = default_config.cmd[1]
+	if config.cmd and type(config.cmd) == "table" then
+		cmd = config.cmd[1]
 	elseif cmd_type == "string" then
-		cmd = default_config.cmd
+		cmd = config.cmd
 	end
 
 	-- Only set up the server if its executable is available
 	if cmd and vim.fn.executable(cmd) == 1 then
-		server.setup(options)
+		server.setup(config)
 	end
 end
 
