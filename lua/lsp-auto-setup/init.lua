@@ -101,6 +101,7 @@ local function create_stop_unused_servers_autocmd(config)
 			end
 
 			-- Stop the client if no other buffers are attached
+			--- @diagnostic disable-next-line: missing-parameter The parameter is optional
 			client.stop()
 		end),
 		desc = "LspAutoSetup: Stop server when no buffer is attached",
@@ -161,11 +162,9 @@ local function setup_server(name, server_config, exclude)
 	end
 
 	-- Only set up the server if its executable is available
-	local available_servers = {}
 	if cmd and vim.fn.executable(cmd) == 1 then
-		table.insert(available_servers, name)
+		vim.lsp.enable(name)
 	end
-	vim.lsp.enable(available_servers)
 end
 
 ---Sets up LSP servers automatically based on available executables
