@@ -8,6 +8,7 @@ local DEPRECATED_SERVER = {
 	"typst_lsp",
 	"ruff_lsp",
 	"bufls",
+	"volar",
 }
 
 local function notify(message, level)
