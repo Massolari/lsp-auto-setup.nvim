@@ -164,6 +164,7 @@ local function setup_server(name, server_config, exclude)
 
 	-- Only set up the server if its executable is available
 	if cmd and vim.fn.executable(cmd) == 1 then
+		vim.lsp.config(name, config)
 		vim.lsp.enable(name)
 	end
 end
