@@ -1,4 +1,4 @@
-*lsp-auto-setup.nvim.txt*      For NVIM v0.8.0     Last change: 2025 August 19
+*lsp-auto-setup.nvim.txt*     For NVIM v0.8.0     Last change: 2025 October 13
 
 ==============================================================================
 Table of Contents                      *lsp-auto-setup.nvim-table-of-contents*
