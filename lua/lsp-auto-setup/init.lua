@@ -18,32 +18,32 @@ end
 
 ---@alias ServerConfig table<string, fun(default_config: table): table>
 
----@class ConfigOptions
+---@class LspAutoZero.ConfigOptions
 ---@field server_config? ServerConfig Table of server configurations, where the key is the server name and the value is a function that gets the default configuration and returns the custom configuration
 ---@field exclude? table List of server names to exclude from auto-setup
----@field cache? CacheOptions Cache configuration options
----@field stop_unused_servers? StopOptions Options for stopping unused servers
+---@field cache? LspAutoZero.CacheOptions Cache configuration options
+---@field stop_unused_servers? LspAutoZero.StopOptions Options for stopping unused servers
 
----@class CacheOptions
+---@class LspAutoZero.CacheOptions
 ---@field enable? boolean Whether to cache the servers or not
 ---@field ttl? number Time-to-live for the cache in seconds
 ---@field path? string Path to the cache directory
 
----@class StopOptions
+---@class LspAutoZero.StopOptions
 ---@field enable? boolean Whether to automatically stop a server when there is no buffer attached to it
 ---@field exclude? table List of server names to exclude from auto-stopping
 
----@class Config
+---@class LspAutoZero.Config
 ---@field server_config ServerConfig
 ---@field exclude table
 ---@field cache CacheConfig
----@field stop_unused_servers StopConfig
+---@field stop_unused_servers LspAutoZero.StopConfig
 
----@class StopConfig
+---@class LspAutoZero.StopConfig
 ---@field enable boolean Whether to automatically stop a server when there is no buffer attached to it
 ---@field exclude table List of server names to exclude from auto-stopping
 
----@type Config
+---@type LspAutoZero.Config
 local DEFAULT_OPTS = {
 	server_config = {},
 	exclude = {},
@@ -59,20 +59,20 @@ local DEFAULT_OPTS = {
 }
 
 --- Gets the configuration options
---- @param opts ConfigOptions
---- @return Config
+--- @param opts LspAutoZero.ConfigOptions
+--- @return LspAutoZero.Config
 local function get_config(opts)
-	---@type CacheOptions
+	---@type LspAutoZero.CacheOptions
 	local cache_options = opts.cache or {}
 	---@type CacheConfig
 	local cache_config = vim.tbl_extend("keep", cache_options, DEFAULT_OPTS.cache)
 
-	---@type StopOptions
+	---@type LspAutoZero.StopOptions
 	local stop_options = opts.stop_unused_servers or {}
-	---@type StopConfig
+	---@type LspAutoZero.StopConfig
 	local stop_config = vim.tbl_extend("keep", stop_options, DEFAULT_OPTS.stop_unused_servers)
 
-	---@type Config
+	---@type LspAutoZero.Config
 	local options = vim.tbl_extend("keep", opts, DEFAULT_OPTS)
 	options.cache = cache_config
 	options.stop_unused_servers = stop_config
@@ -81,7 +81,7 @@ local function get_config(opts)
 end
 
 --- Creates an autocmd to stop unused servers
---- @param config StopConfig
+--- @param config LspAutoZero.StopConfig
 local function create_stop_unused_servers_autocmd(config)
 	if not config.enable then
 		return
@@ -171,7 +171,7 @@ local function setup_server(name, server_config, exclude)
 end
 
 ---Sets up LSP servers automatically based on available executables
----@param opts ConfigOptions|nil Configuration options
+---@param opts LspAutoZero.ConfigOptions|nil Configuration options
 function M.setup(opts)
 	local options = get_config(opts or {})
 
