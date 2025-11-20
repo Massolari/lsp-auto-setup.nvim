@@ -194,19 +194,12 @@ function M.setup(opts)
 
 	local servers_to_cache = {}
 	-- Iterate through all available LSP server configurations
-	for name, type_ in vim.fs.dir((lspconfig_path .. "/lsp")) do
-		if type_ ~= "file" then
-			goto continue
-		end
-
-		local name_without_extension = vim.fn.fnamemodify(name, ":r")
+	local lsp_modules = vim.api.nvim_get_runtime_file("lsp/*.lua", true)
+	for _, name in ipairs(lsp_modules) do
+		local name_without_extension = name:match("lsp/(.+)%.lua$")
 		table.insert(servers_to_cache, name_without_extension)
 		setup_server(name_without_extension, options.server_config, options.exclude)
-
-		::continue::
 	end
-
-	cache.write_servers(servers_to_cache, options.cache)
 end
 
 return M
