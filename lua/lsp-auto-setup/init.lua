@@ -5,9 +5,10 @@ local M = {}
 
 --- List of deprecated LSP servers that should not be set up
 local DEPRECATED_SERVER = {
-	"typst_lsp",
-	"ruff_lsp",
 	"bufls",
+	"ruff_lsp",
+	"systemd_ls",
+	"typst_lsp",
 	"volar",
 	"vscoqtop",
 }
