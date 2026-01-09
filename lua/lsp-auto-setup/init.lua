@@ -104,8 +104,7 @@ local function create_stop_unused_servers_autocmd(config)
 			end
 
 			-- Stop the client if no other buffers are attached
-			--- @diagnostic disable-next-line: missing-parameter The parameter is optional
-			client.stop()
+			client:stop()
 		end),
 		desc = "LspAutoSetup: Stop server when no buffer is attached",
 	})
