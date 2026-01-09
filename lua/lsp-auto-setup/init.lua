@@ -114,6 +114,10 @@ end
 ---@return string|nil lspconfig_path Path to the nvim-lspconfig installation or `nil` if not found
 local function get_lspconfig_path()
 	local runtime_paths = vim.opt.rtp:get()
+	if type(runtime_paths) ~= "table" then
+		return nil
+	end
+
 	local lspconfig_path = vim.tbl_filter(function(path)
 		return vim.endswith(path, "nvim-lspconfig")
 	end, runtime_paths)[1]
