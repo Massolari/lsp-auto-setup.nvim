@@ -158,17 +158,19 @@ local function setup_server(name, server_config, exclude)
 		config = vim.tbl_extend("force", config, user_options(config))
 	end
 
-	--- @type string|nil
+	--- @type string|nil|function
 	local cmd = nil
 	-- If the user has provided a custom command, use that
 	if cmd_type == "table" then
 		cmd = config.cmd[1]
 	elseif cmd_type == "string" then
 		cmd = config.cmd --[[@as string]]
+	elseif cmd_type == "function" then
+		cmd = config.cmd --[[@as function]]
 	end
 
 	-- Only set up the server if its executable is available
-	if cmd and vim.fn.executable(cmd) == 1 then
+	if type(cmd) == "function" or cmd and vim.fn.executable(cmd) == 1 then
 		vim.lsp.config(name, config)
 		vim.lsp.enable(name)
 	end
